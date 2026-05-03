@@ -58,6 +58,7 @@ function RootFolders() {
               isEmpty={rootFolder.isEmpty}
               freeSpace={rootFolder.freeSpace}
               unmappedFolders={rootFolder.unmappedFolders}
+              folderType={rootFolder.folderType}
             />
           );
         })}
