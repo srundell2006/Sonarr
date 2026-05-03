@@ -19,6 +19,13 @@
 		<ProjectReference Include="..\Sonarr.Api.V5\Sonarr.Api.V5.csproj" />
 		<ProjectReference Include="..\Sonarr.Http\Sonarr.Http.csproj" />
 	</ItemGroup>
+	<ItemGroup Condition="!$([MSBuild]::IsOSPlatform('Windows'))">
+		<ProjectReference Include="..\NzbDrone.Mono\Sonarr.Mono.csproj">
+			<ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+			<OutputItemType>Content</OutputItemType>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</ProjectReference>
+	</ItemGroup>
 	<ItemGroup>
 		<Reference Include="Interop.NetFwTypeLib">
 			<HintPath>..\Libraries\Interop.NetFwTypeLib.dll</HintPath>
