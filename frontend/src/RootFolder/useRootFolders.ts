@@ -17,6 +17,7 @@ export interface RootFolder extends ModelBase {
   accessible: boolean;
   isEmpty: boolean;
   freeSpace?: number;
+  folderType: number;
   unmappedFolders: UnmappedFolder[];
 }
 

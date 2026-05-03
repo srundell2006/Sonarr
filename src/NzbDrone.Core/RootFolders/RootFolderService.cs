@@ -16,7 +16,10 @@ namespace NzbDrone.Core.RootFolders
     public interface IRootFolderService
     {
         List<RootFolder> All();
+        List<RootFolder> AllRootFolders();
+        List<RootFolder> AllProcessingFolders();
         List<RootFolder> AllWithUnmappedFolders();
+        List<RootFolder> AllProcessingFoldersWithDetails();
         RootFolder Add(RootFolder rootDir);
         void Remove(int id);
         RootFolder Get(int id, bool timeout);
@@ -64,14 +67,26 @@ namespace NzbDrone.Core.RootFolders
 
         public List<RootFolder> All()
         {
-            var rootFolders = _rootFolderRepository.All().ToList();
+            return _rootFolderRepository.All().ToList();
+        }
 
-            return rootFolders;
+        public List<RootFolder> AllRootFolders()
+        {
+            return _rootFolderRepository.All()
+                .Where(r => r.FolderType == RootFolderType.RootFolder)
+                .ToList();
+        }
+
+        public List<RootFolder> AllProcessingFolders()
+        {
+            return _rootFolderRepository.All()
+                .Where(r => r.FolderType == RootFolderType.Processing)
+                .ToList();
         }
 
         public List<RootFolder> AllWithUnmappedFolders()
         {
-            var rootFolders = _rootFolderRepository.All().ToList();
+            var rootFolders = AllRootFolders();
             var seriesPaths = _seriesRepository.AllSeriesPaths();
 
             rootFolders.ForEach(folder =>
@@ -93,6 +108,28 @@ namespace NzbDrone.Core.RootFolders
             });
 
             return rootFolders;
+        }
+
+        public List<RootFolder> AllProcessingFoldersWithDetails()
+        {
+            var processingFolders = AllProcessingFolders();
+
+            processingFolders.ForEach(folder =>
+            {
+                try
+                {
+                    if (folder.Path.IsPathValid(PathValidationType.CurrentOs))
+                    {
+                        GetBasicDetails(folder);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex, "Unable to get free space for processing folder {0}", folder.Path);
+                }
+            });
+
+            return processingFolders;
         }
 
         public RootFolder Add(RootFolder rootFolder)
@@ -120,9 +157,17 @@ namespace NzbDrone.Core.RootFolders
             }
 
             _rootFolderRepository.Insert(rootFolder);
-            var seriesPaths = _seriesRepository.AllSeriesPaths();
 
-            GetDetails(rootFolder, seriesPaths, true);
+            if (rootFolder.FolderType == RootFolderType.RootFolder)
+            {
+                var seriesPaths = _seriesRepository.AllSeriesPaths();
+                GetDetails(rootFolder, seriesPaths, true);
+            }
+            else
+            {
+                GetBasicDetails(rootFolder);
+            }
+
             _cache.Clear();
 
             return rootFolder;
@@ -210,6 +255,17 @@ namespace NzbDrone.Core.RootFolders
                     rootFolder.UnmappedFolders = GetUnmappedFolders(rootFolder.Path, seriesPaths);
                 }
             }).Wait(timeout ? 5000 : -1);
+        }
+
+        private void GetBasicDetails(RootFolder rootFolder)
+        {
+            if (_diskProvider.FolderExists(rootFolder.Path))
+            {
+                rootFolder.Accessible = true;
+                rootFolder.FreeSpace = _diskProvider.GetAvailableSpace(rootFolder.Path);
+                rootFolder.TotalSpace = _diskProvider.GetTotalSize(rootFolder.Path);
+                rootFolder.UnmappedFolders = new List<UnmappedFolder>();
+            }
         }
 
         private string GetBestRootFolderPathInternal(string path)

@@ -1880,6 +1880,7 @@
   "RootFolderPath": "Root Folder Path",
   "RootFolderSelectFreeSpace": "{freeSpace} Free",
   "RootFolders": "Root Folders",
+  "ProcessingFolders": "Processing Folders",
   "RootFoldersLoadError": "Unable to load root folders",
   "Rss": "RSS",
   "RssIsNotSupportedWithThisIndexer": "RSS is not supported with this indexer",

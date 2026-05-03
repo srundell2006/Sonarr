@@ -11,6 +11,7 @@ public class RootFolderResource : RestResource
     public bool IsEmpty { get; set; }
     public long? FreeSpace { get; set; }
     public long? TotalSpace { get; set; }
+    public RootFolderType FolderType { get; set; }
 
     public List<UnmappedFolder> UnmappedFolders { get; set; } = [];
 }
@@ -27,6 +28,7 @@ public static class RootFolderResourceMapper
             IsEmpty = model.IsEmpty,
             FreeSpace = model.FreeSpace,
             TotalSpace = model.TotalSpace,
+            FolderType = model.FolderType,
             UnmappedFolders = model.UnmappedFolders
         };
     }
@@ -36,8 +38,8 @@ public static class RootFolderResourceMapper
         return new RootFolder
         {
             Id = resource.Id,
-
-            Path = resource.Path
+            Path = resource.Path,
+            FolderType = resource.FolderType
 
             // Accessible
             // IsEmpty

@@ -19,6 +19,8 @@ import { SettingsStateChange } from 'typings/Settings/SettingsState';
 import translate from 'Utilities/String/translate';
 import Naming from './Naming/Naming';
 import AddRootFolder from './RootFolder/AddRootFolder';
+import AddProcessingFolder from './RootFolder/AddProcessingFolder';
+import ProcessingFolders from 'RootFolder/ProcessingFolders';
 import {
   MediaManagementSettingsModel,
   useManageMediaManagementSettings,
@@ -669,6 +671,11 @@ function MediaManagement() {
         <FieldSet legend={translate('RootFolders')}>
           <RootFolders />
           <AddRootFolder />
+        </FieldSet>
+
+        <FieldSet legend={translate('ProcessingFolders')}>
+          <ProcessingFolders />
+          <AddProcessingFolder />
         </FieldSet>
       </PageContentBody>
     </PageContent>
