@@ -12,6 +12,7 @@ public class RootFolderResource : RestResource
     public long? FreeSpace { get; set; }
     public long? TotalSpace { get; set; }
     public RootFolderType FolderType { get; set; }
+    public List<string> Codecs { get; set; } = [];
 
     public List<UnmappedFolder> UnmappedFolders { get; set; } = [];
 }
@@ -29,6 +30,7 @@ public static class RootFolderResourceMapper
             FreeSpace = model.FreeSpace,
             TotalSpace = model.TotalSpace,
             FolderType = model.FolderType,
+            Codecs = model.Codecs ?? [],
             UnmappedFolders = model.UnmappedFolders
         };
     }
@@ -39,7 +41,8 @@ public static class RootFolderResourceMapper
         {
             Id = resource.Id,
             Path = resource.Path,
-            FolderType = resource.FolderType
+            FolderType = resource.FolderType,
+            Codecs = resource.Codecs ?? []
 
             // Accessible
             // IsEmpty

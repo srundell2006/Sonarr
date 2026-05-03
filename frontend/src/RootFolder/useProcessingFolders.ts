@@ -12,10 +12,12 @@ export interface ProcessingFolder extends ModelBase {
   freeSpace?: number;
   totalSpace?: number;
   folderType: number;
+  codecs: string[];
 }
 
 interface AddProcessingFolder {
   path: string;
+  codecs?: string[];
 }
 
 const DEFAULT_PROCESSING_FOLDERS: ProcessingFolder[] = [];
@@ -50,6 +52,30 @@ export const useDeleteProcessingFolder = (id: number) => {
     deleteProcessingFolder: mutate,
     isDeleting: isPending,
     deleteError: error,
+  };
+};
+
+export const useUpdateProcessingFolder = (id: number) => {
+  const queryClient = useQueryClient();
+
+  const { mutate, isPending, error } = useApiMutation<ProcessingFolder, Partial<ProcessingFolder>>({
+    path: `/processingFolder/${id}`,
+    method: 'PUT',
+    mutationOptions: {
+      onSuccess: (updatedFolder) => {
+        queryClient.setQueryData<ProcessingFolder[]>(
+          ['/processingFolder'],
+          (oldFolders = []) =>
+            addOrUpdateQueryClientItem(oldFolders, updatedFolder, 'id')
+        );
+      },
+    },
+  });
+
+  return {
+    updateProcessingFolder: mutate,
+    isUpdating: isPending,
+    updateError: error,
   };
 };
 

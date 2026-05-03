@@ -18,11 +18,13 @@ export interface RootFolder extends ModelBase {
   isEmpty: boolean;
   freeSpace?: number;
   folderType: number;
+  codecs: string[];
   unmappedFolders: UnmappedFolder[];
 }
 
 interface AddRootFolder {
   path: string;
+  codecs?: string[];
 }
 
 const DEFAULT_ROOT_FOLDERS: RootFolder[] = [];
@@ -73,6 +75,30 @@ export const useDeleteRootFolder = (id: number) => {
     deleteRootFolder: mutate,
     isDeleting: isPending,
     deleteError: error,
+  };
+};
+
+export const useUpdateRootFolder = (id: number) => {
+  const queryClient = useQueryClient();
+
+  const { mutate, isPending, error } = useApiMutation<RootFolder, Partial<RootFolder>>({
+    path: `/rootFolder/${id}`,
+    method: 'PUT',
+    mutationOptions: {
+      onSuccess: (updatedFolder) => {
+        queryClient.setQueryData<RootFolder[]>(
+          ['/rootFolder'],
+          (oldFolders = []) =>
+            addOrUpdateQueryClientItem(oldFolders, updatedFolder, 'id')
+        );
+      },
+    },
+  });
+
+  return {
+    updateRootFolder: mutate,
+    isUpdating: isPending,
+    updateError: error,
   };
 };
 

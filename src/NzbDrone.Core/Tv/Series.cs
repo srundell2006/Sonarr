@@ -52,6 +52,13 @@ namespace NzbDrone.Core.Tv
         public List<Actor> Actors { get; set; }
         public string Certification { get; set; }
         public string RootFolderPath { get; set; }
+
+        /// <summary>Explicit root folder assignment for codec-based routing. Null = use RootFolderPath.</summary>
+        public int? RootFolderId { get; set; }
+
+        /// <summary>Explicit processing folder assignment for codec-based routing. Null = no processing folder.</summary>
+        public int? ProcessingFolderId { get; set; }
+
         public DateTime Added { get; set; }
         public DateTime? FirstAired { get; set; }
         public DateTime? LastAired { get; set; }
@@ -81,6 +88,8 @@ namespace NzbDrone.Core.Tv
 
             SeriesType = otherSeries.SeriesType;
             RootFolderPath = otherSeries.RootFolderPath;
+            RootFolderId = otherSeries.RootFolderId;
+            ProcessingFolderId = otherSeries.ProcessingFolderId;
             Tags = otherSeries.Tags;
             AddOptions = otherSeries.AddOptions;
         }

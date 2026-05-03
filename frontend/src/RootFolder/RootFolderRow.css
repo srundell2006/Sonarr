@@ -25,3 +25,24 @@
 
   width: 45px;
 }
+
+.codecDisplay {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.codecEditor {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.codecCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}

@@ -91,6 +91,8 @@ interface Series extends ModelBase {
   qualityProfileId: number;
   ratings: Ratings;
   rootFolderPath: string;
+  rootFolderId?: number;
+  processingFolderId?: number;
   runtime: number;
   seasonFolder: boolean;
   seasons: Season[];

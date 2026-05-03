@@ -26,6 +26,11 @@ const rootFolderColumns: Column[] = [
     isVisible: true,
   },
   {
+    name: 'codecs',
+    label: () => translate('Codecs'),
+    isVisible: true,
+  },
+  {
     name: 'actions',
     label: '',
     isVisible: true,
@@ -59,6 +64,7 @@ function RootFolders() {
               freeSpace={rootFolder.freeSpace}
               unmappedFolders={rootFolder.unmappedFolders}
               folderType={rootFolder.folderType}
+              codecs={rootFolder.codecs ?? []}
             />
           );
         })}

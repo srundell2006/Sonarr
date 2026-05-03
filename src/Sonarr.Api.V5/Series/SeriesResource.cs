@@ -46,6 +46,8 @@ public class SeriesResource : RestResource
     public string? ImdbId { get; set; }
     public string? TitleSlug { get; set; }
     public string? RootFolderPath { get; set; }
+    public int? RootFolderId { get; set; }
+    public int? ProcessingFolderId { get; set; }
     public string? Folder { get; set; }
     public string? Certification { get; set; }
     public List<string>? Genres { get; set; }
@@ -98,6 +100,8 @@ public static class SeriesResourceMapper
             CleanTitle = model.CleanTitle,
             ImdbId = model.ImdbId,
             TitleSlug = model.TitleSlug,
+            RootFolderId = model.RootFolderId,
+            ProcessingFolderId = model.ProcessingFolderId,
             Certification = model.Certification,
             Genres = model.Genres,
             Tags = model.Tags,
@@ -141,6 +145,8 @@ public static class SeriesResourceMapper
             ImdbId = resource.ImdbId,
             TitleSlug = resource.TitleSlug,
             RootFolderPath = resource.RootFolderPath,
+            RootFolderId = resource.RootFolderId,
+            ProcessingFolderId = resource.ProcessingFolderId,
             Certification = resource.Certification,
             Genres = resource.Genres,
             Tags = resource.Tags,

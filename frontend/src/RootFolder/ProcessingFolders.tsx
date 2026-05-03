@@ -21,6 +21,11 @@ const processingFolderColumns: Column[] = [
     isVisible: true,
   },
   {
+    name: 'codecs',
+    label: () => translate('Codecs'),
+    isVisible: true,
+  },
+  {
     name: 'actions',
     label: '',
     isVisible: true,
@@ -52,6 +57,7 @@ function ProcessingFolders() {
               accessible={folder.accessible}
               freeSpace={folder.freeSpace}
               folderType={folder.folderType}
+              codecs={folder.codecs ?? []}
             />
           );
         })}

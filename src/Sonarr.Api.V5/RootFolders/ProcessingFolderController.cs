@@ -66,6 +66,14 @@ public class ProcessingFolderController : RestControllerWithSignalR<RootFolderRe
         return TypedResults.Ok(_rootFolderService.AllProcessingFoldersWithDetails().ToResource());
     }
 
+    [RestPutById]
+    [Consumes("application/json")]
+    public Results<Accepted<RootFolderResource>, NotFound> UpdateProcessingFolder([FromBody] RootFolderResource resource)
+    {
+        _rootFolderService.Update(resource.ToModel());
+        return TypedAccepted(resource.Id);
+    }
+
     [RestDeleteById]
     public NoContent DeleteFolder(int id)
     {

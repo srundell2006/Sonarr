@@ -22,6 +22,8 @@ import {
   sizes,
   tooltipPositions,
 } from 'Helpers/Props';
+import useProcessingFolders from 'RootFolder/useProcessingFolders';
+import useRootFolders from 'RootFolder/useRootFolders';
 import MoveSeriesModal from 'Series/MoveSeries/MoveSeriesModal';
 import Series from 'Series/Series';
 import { useSaveSeries, useSingleSeries } from 'Series/useSeries';
@@ -54,11 +56,26 @@ function EditSeriesModalContent({
     path,
     tags,
     rootFolderPath: initialRootFolderPath,
+    rootFolderId,
+    processingFolderId,
   } = series;
 
   const { pendingChanges, setPendingChange } = usePendingChangesStore<Series>(
     {}
   );
+
+  const { data: rootFolders } = useRootFolders();
+  const { data: processingFolders } = useProcessingFolders();
+
+  const rootFolderOptions = useMemo(() => [
+    { key: -1, value: translate('Automatic') },
+    ...rootFolders.map((f) => ({ key: f.id, value: f.path })),
+  ], [rootFolders]);
+
+  const processingFolderOptions = useMemo(() => [
+    { key: -1, value: translate('None') },
+    ...processingFolders.map((f) => ({ key: f.id, value: f.path })),
+  ], [processingFolders]);
 
   const [isRootFolderModalOpen, setIsRootFolderModalOpen] = useState(false);
   const [rootFolderPath, setRootFolderPath] = useState(initialRootFolderPath);
@@ -80,6 +97,8 @@ function EditSeriesModalContent({
         seriesType,
         path,
         tags,
+        rootFolderId: rootFolderId ?? -1,
+        processingFolderId: processingFolderId ?? -1,
       },
       pendingChanges,
       saveError
@@ -92,14 +111,21 @@ function EditSeriesModalContent({
     seriesType,
     path,
     tags,
+    rootFolderId,
+    processingFolderId,
     pendingChanges,
     saveError,
   ]);
 
   const handleInputChange = useCallback(
     ({ name, value }: InputChanged) => {
+      // Convert sentinel -1 back to undefined for folder ID fields
+      const normalizedValue =
+        (name === 'rootFolderId' || name === 'processingFolderId') && value === -1
+          ? undefined
+          : value;
       // @ts-expect-error name needs to be keyof Series
-      setPendingChange(name, value);
+      setPendingChange(name, normalizedValue);
     },
     [setPendingChange]
   );
@@ -264,6 +290,32 @@ function EditSeriesModalContent({
               type={inputTypes.TAG}
               name="tags"
               {...settings.tags}
+              onChange={handleInputChange}
+            />
+          </FormGroup>
+
+          <FormGroup size={sizes.MEDIUM}>
+            <FormLabel>{translate('RootFolder')}</FormLabel>
+
+            <FormInputGroup
+              type={inputTypes.SELECT}
+              name="rootFolderId"
+              values={rootFolderOptions}
+              helpText={translate('RootFolderCodecRoutingHelpText')}
+              {...settings.rootFolderId}
+              onChange={handleInputChange}
+            />
+          </FormGroup>
+
+          <FormGroup size={sizes.MEDIUM}>
+            <FormLabel>{translate('ProcessingFolder')}</FormLabel>
+
+            <FormInputGroup
+              type={inputTypes.SELECT}
+              name="processingFolderId"
+              values={processingFolderOptions}
+              helpText={translate('ProcessingFolderHelpText')}
+              {...settings.processingFolderId}
               onChange={handleInputChange}
             />
           </FormGroup>
