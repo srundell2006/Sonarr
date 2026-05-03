@@ -25,6 +25,11 @@
 			<OutputItemType>Content</OutputItemType>
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</ProjectReference>
+		<!-- Pull Mono.Posix.NETStandard into the publish output.
+		     Sonarr.Mono.csproj references this package, but because we reference
+		     it with ReferenceOutputAssembly=false its transitive NuGet deps are
+		     not automatically included by dotnet publish. -->
+		<PackageReference Include="Mono.Posix.NETStandard" Version="5.20.1.34-servarr24" />
 	</ItemGroup>
 	<ItemGroup>
 		<Reference Include="Interop.NetFwTypeLib">
