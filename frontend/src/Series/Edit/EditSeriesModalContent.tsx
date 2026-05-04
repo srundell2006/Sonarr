@@ -58,7 +58,6 @@ function EditSeriesModalContent({
     tags,
     rootFolderPath: initialRootFolderPath,
     rootFolderId,
-    processingFolderId,
     processingPath: initialProcessingPath,
   } = series;
 

@@ -92,11 +92,10 @@ function ProcessingFolderModalContent({
             <FormLabel>{translate('SeriesPath')}</FormLabel>
 
             <FormInputGroup
-              type={inputTypes.PATH}
+              type={inputTypes.TEXT}
               name="processingPathPreview"
               value={previewPath}
-              isDisabled={true}
-              includeFiles={false}
+              readOnly={true}
               onChange={() => {}}
             />
           </FormGroup>
