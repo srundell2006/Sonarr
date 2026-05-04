@@ -29,6 +29,8 @@ import { useSaveSeries, useSingleSeries } from 'Series/useSeries';
 import selectSettings from 'Store/Selectors/selectSettings';
 import { InputChanged } from 'typings/inputs';
 import translate from 'Utilities/String/translate';
+import ProcessingFolderModal from './ProcessingFolder/ProcessingFolderModal';
+import { ProcessingFolderUpdated } from './ProcessingFolder/ProcessingFolderModalContent';
 import RootFolderModal from './RootFolder/RootFolderModal';
 import { RootFolderUpdated } from './RootFolder/RootFolderModalContent';
 import styles from './EditSeriesModalContent.css';
@@ -57,6 +59,7 @@ function EditSeriesModalContent({
     rootFolderPath: initialRootFolderPath,
     rootFolderId,
     processingFolderId,
+    processingPath: initialProcessingPath,
   } = series;
 
   const { pendingChanges, setPendingChange } = usePendingChangesStore<Series>(
@@ -72,6 +75,8 @@ function EditSeriesModalContent({
 
   const [isRootFolderModalOpen, setIsRootFolderModalOpen] = useState(false);
   const [rootFolderPath, setRootFolderPath] = useState(initialRootFolderPath);
+  const [isProcessingFolderModalOpen, setIsProcessingFolderModalOpen] = useState(false);
+  const [processingPath, setProcessingPath] = useState(initialProcessingPath ?? '');
   const isPathChanging = !!(
     pendingChanges.path && path !== pendingChanges.path
   );
@@ -91,7 +96,7 @@ function EditSeriesModalContent({
         path,
         tags,
         rootFolderId: rootFolderId ?? -1,
-        processingFolderId: processingFolderId ?? -1,
+        processingPath: initialProcessingPath ?? '',
       },
       pendingChanges,
       saveError
@@ -105,7 +110,7 @@ function EditSeriesModalContent({
     path,
     tags,
     rootFolderId,
-    processingFolderId,
+    initialProcessingPath,
     pendingChanges,
     saveError,
   ]);
@@ -139,6 +144,24 @@ function EditSeriesModalContent({
       setIsRootFolderModalOpen(false);
       setRootFolderPath(newRootFolderPath);
       handleInputChange({ name: 'path', value: newPath });
+    },
+    [handleInputChange]
+  );
+
+  const handleProcessingFolderPress = useCallback(() => {
+    setIsProcessingFolderModalOpen(true);
+  }, []);
+
+  const handleProcessingFolderModalClose = useCallback(() => {
+    setIsProcessingFolderModalOpen(false);
+  }, []);
+
+  const handleProcessingFolderChange = useCallback(
+    ({ processingPath: newProcessingPath, processingFolderId: newProcessingFolderId }: ProcessingFolderUpdated) => {
+      setIsProcessingFolderModalOpen(false);
+      setProcessingPath(newProcessingPath);
+      handleInputChange({ name: 'processingPath', value: newProcessingPath });
+      handleInputChange({ name: 'processingFolderId', value: newProcessingFolderId ?? undefined });
     },
     [handleInputChange]
   );
@@ -301,13 +324,24 @@ function EditSeriesModalContent({
           </FormGroup>
 
           <FormGroup size={sizes.MEDIUM}>
-            <FormLabel>{translate('ProcessingFolder')}</FormLabel>
+            <FormLabel>{translate('ProcessingPath')}</FormLabel>
 
             <FormInputGroup
-              type={inputTypes.PROCESSING_FOLDER_SELECT}
-              name="processingFolderId"
+              type={inputTypes.PATH}
+              name="processingPath"
+              value={pendingChanges.processingPath ?? processingPath}
               helpText={translate('ProcessingFolderHelpText')}
-              {...settings.processingFolderId}
+              buttons={[
+                <FormInputButton
+                  key="processingFolderBrowser"
+                  kind={kinds.DEFAULT}
+                  title={translate('ProcessingFolder')}
+                  onPress={handleProcessingFolderPress}
+                >
+                  <Icon name={icons.ROOT_FOLDER} />
+                </FormInputButton>,
+              ]}
+              includeFiles={false}
               onChange={handleInputChange}
             />
           </FormGroup>
@@ -340,6 +374,13 @@ function EditSeriesModalContent({
         rootFolderPath={rootFolderPath}
         onSavePress={handleRootFolderChange}
         onModalClose={handleRootFolderModalClose}
+      />
+
+      <ProcessingFolderModal
+        isOpen={isProcessingFolderModalOpen}
+        seriesId={seriesId}
+        onSavePress={handleProcessingFolderChange}
+        onModalClose={handleProcessingFolderModalClose}
       />
 
       <MoveSeriesModal

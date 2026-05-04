@@ -48,6 +48,7 @@ public class SeriesResource : RestResource
     public string? RootFolderPath { get; set; }
     public int? RootFolderId { get; set; }
     public int? ProcessingFolderId { get; set; }
+    public string? ProcessingPath { get; set; }
     public string? Folder { get; set; }
     public string? Certification { get; set; }
     public List<string>? Genres { get; set; }
@@ -102,6 +103,7 @@ public static class SeriesResourceMapper
             TitleSlug = model.TitleSlug,
             RootFolderId = model.RootFolderId,
             ProcessingFolderId = model.ProcessingFolderId,
+            ProcessingPath = model.ProcessingPath,
             Certification = model.Certification,
             Genres = model.Genres,
             Tags = model.Tags,
@@ -147,6 +149,7 @@ public static class SeriesResourceMapper
             RootFolderPath = resource.RootFolderPath,
             RootFolderId = resource.RootFolderId,
             ProcessingFolderId = resource.ProcessingFolderId,
+            ProcessingPath = resource.ProcessingPath,
             Certification = resource.Certification,
             Genres = resource.Genres,
             Tags = resource.Tags,

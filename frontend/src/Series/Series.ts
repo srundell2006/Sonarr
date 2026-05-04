@@ -93,6 +93,7 @@ interface Series extends ModelBase {
   rootFolderPath: string;
   rootFolderId?: number;
   processingFolderId?: number;
+  processingPath?: string;
   runtime: number;
   seasonFolder: boolean;
   seasons: Season[];

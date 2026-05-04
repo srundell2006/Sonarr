@@ -59,6 +59,9 @@ namespace NzbDrone.Core.Tv
         /// <summary>Explicit processing folder assignment for codec-based routing. Null = no processing folder.</summary>
         public int? ProcessingFolderId { get; set; }
 
+        /// <summary>Full path within the processing folder for this series (e.g. /downloads/ShowName). Null = no per-series processing path.</summary>
+        public string ProcessingPath { get; set; }
+
         public DateTime Added { get; set; }
         public DateTime? FirstAired { get; set; }
         public DateTime? LastAired { get; set; }
@@ -90,6 +93,7 @@ namespace NzbDrone.Core.Tv
             RootFolderPath = otherSeries.RootFolderPath;
             RootFolderId = otherSeries.RootFolderId;
             ProcessingFolderId = otherSeries.ProcessingFolderId;
+            ProcessingPath = otherSeries.ProcessingPath;
             Tags = otherSeries.Tags;
             AddOptions = otherSeries.AddOptions;
         }
