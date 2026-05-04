@@ -22,7 +22,6 @@ import {
   sizes,
   tooltipPositions,
 } from 'Helpers/Props';
-import useProcessingFolders from 'RootFolder/useProcessingFolders';
 import useRootFolders from 'RootFolder/useRootFolders';
 import MoveSeriesModal from 'Series/MoveSeries/MoveSeriesModal';
 import Series from 'Series/Series';
@@ -65,17 +64,11 @@ function EditSeriesModalContent({
   );
 
   const { data: rootFolders } = useRootFolders();
-  const { data: processingFolders } = useProcessingFolders();
 
   const rootFolderOptions = useMemo(() => [
     { key: -1, value: translate('Automatic') },
     ...rootFolders.map((f) => ({ key: f.id, value: f.path })),
   ], [rootFolders]);
-
-  const processingFolderOptions = useMemo(() => [
-    { key: -1, value: translate('None') },
-    ...processingFolders.map((f) => ({ key: f.id, value: f.path })),
-  ], [processingFolders]);
 
   const [isRootFolderModalOpen, setIsRootFolderModalOpen] = useState(false);
   const [rootFolderPath, setRootFolderPath] = useState(initialRootFolderPath);
@@ -311,9 +304,8 @@ function EditSeriesModalContent({
             <FormLabel>{translate('ProcessingFolder')}</FormLabel>
 
             <FormInputGroup
-              type={inputTypes.SELECT}
+              type={inputTypes.PROCESSING_FOLDER_SELECT}
               name="processingFolderId"
-              values={processingFolderOptions}
               helpText={translate('ProcessingFolderHelpText')}
               {...settings.processingFolderId}
               onChange={handleInputChange}

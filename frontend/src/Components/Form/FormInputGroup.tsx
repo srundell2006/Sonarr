@@ -43,6 +43,9 @@ import ProviderDataSelectInput, {
 import QualityProfileSelectInput, {
   QualityProfileSelectInputProps,
 } from './Select/QualityProfileSelectInput';
+import ProcessingFolderSelectInput, {
+  ProcessingFolderSelectInputProps,
+} from './Select/ProcessingFolderSelectInput';
 import RootFolderSelectInput, {
   RootFolderSelectInputProps,
 } from './Select/RootFolderSelectInput';
@@ -79,6 +82,7 @@ const componentMap: Record<InputType, ElementType> = {
   password: PasswordInput,
   path: PathInput,
   qualityProfileSelect: QualityProfileSelectInput,
+  processingFolderSelect: ProcessingFolderSelectInput,
   rootFolderSelect: RootFolderSelectInput,
   select: EnhancedSelectInput,
   seriesTag: SeriesTagInput,
@@ -135,6 +139,8 @@ type PickProps<V, C extends InputType> = C extends 'text'
   ? PathInputProps
   : C extends 'qualityProfileSelect'
   ? QualityProfileSelectInputProps
+  : C extends 'processingFolderSelect'
+  ? ProcessingFolderSelectInputProps
   : C extends 'rootFolderSelect'
   ? RootFolderSelectInputProps
   : C extends 'select'

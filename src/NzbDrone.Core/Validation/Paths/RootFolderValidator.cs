@@ -25,7 +25,18 @@ namespace NzbDrone.Core.Validation.Paths
 
             context.MessageFormatter.AppendArgument("path", context.PropertyValue.ToString());
 
-            return !_rootFolderService.All().Exists(r => r.Path.IsPathValid(PathValidationType.CurrentOs) && r.Path.PathEquals(context.PropertyValue.ToString()));
+            // When updating an existing record the instance already has an Id > 0.
+            // Exclude that record from the uniqueness check so a PUT that only changes
+            // Codecs (but keeps the same Path) is not rejected.
+            var currentId = (context.InstanceToValidate
+                                 ?.GetType()
+                                 .GetProperty("Id")
+                                 ?.GetValue(context.InstanceToValidate) as int?) ?? 0;
+
+            return !_rootFolderService.All().Exists(r =>
+                r.Id != currentId &&
+                r.Path.IsPathValid(PathValidationType.CurrentOs) &&
+                r.Path.PathEquals(context.PropertyValue.ToString()));
         }
     }
 }
