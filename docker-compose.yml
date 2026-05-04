@@ -77,32 +77,4 @@ services:
         ENTRYPOINT ["/entrypoint.sh"]
 
     image: sonarr-custom:latest
-    container_name: sonarr_custom
-    hostname: tv.gaytulsa.org
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/Chicago
-    volumes:
-      - /Docker/Sonarr:/config
-      - /PlexMedia:/data #optional
-      - /PlexMedia2:/data2 #optional
-      - /Containers/SonarrTemp:/NonAV #optional
-    networks:
-      traefik:
-        ipv4_address: 172.30.0.7
-      #PlexNet:
-      #  ipv4_address: 10.10.3.5
     restart: unless-stopped
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.sonarr.rule=Host(`tv.gaytulsa.org`) || Host(`tv.internal.gaytulsa.org`)"
-      - "traefik.http.services.sonarr.loadbalancer.server.port=80"
-      - "traefik.http.routers.sonarr.service=sonarr"
-      #- "traefik.http.routers.sonarr.middlewares=authentik-auth"
-
-networks:
-  traefik:
-    external: true
-#  PlexNet:
-#    external: true

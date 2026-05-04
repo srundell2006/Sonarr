@@ -1,3 +1,6 @@
+# Local deployment overrides — never commit
+docker-compose.override.yml
+
 # Build Folders (you can keep bin if you'd like, to store dlls and pdbs)
 src/**/[Bb]in/
 src/**/[Oo]bj/
