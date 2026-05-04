@@ -2,6 +2,9 @@
 // Please do not change this file!
 interface CssExports {
   'actions': string;
+  'codecCheckbox': string;
+  'codecDisplay': string;
+  'codecEditor': string;
   'freeSpace': string;
   'label': string;
   'link': string;
