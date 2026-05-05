@@ -41,6 +41,8 @@ namespace NzbDrone.Core.MediaFiles
         private readonly IMediaFileTableCleanupService _mediaFileTableCleanupService;
         private readonly IRootFolderService _rootFolderService;
         private readonly IUpdateMediaInfo _updateMediaInfoService;
+        private readonly IFolderRoutingService _folderRoutingService;
+        private readonly IManageCommandQueue _commandQueue;
         private readonly IEventAggregator _eventAggregator;
         private readonly Logger _logger;
 
@@ -53,6 +55,8 @@ namespace NzbDrone.Core.MediaFiles
                                IMediaFileTableCleanupService mediaFileTableCleanupService,
                                IRootFolderService rootFolderService,
                                IUpdateMediaInfo updateMediaInfoService,
+                               IFolderRoutingService folderRoutingService,
+                               IManageCommandQueue commandQueue,
                                IEventAggregator eventAggregator,
                                Logger logger)
         {
@@ -65,6 +69,8 @@ namespace NzbDrone.Core.MediaFiles
             _mediaFileTableCleanupService = mediaFileTableCleanupService;
             _rootFolderService = rootFolderService;
             _updateMediaInfoService = updateMediaInfoService;
+            _folderRoutingService = folderRoutingService;
+            _commandQueue = commandQueue;
             _eventAggregator = eventAggregator;
             _logger = logger;
         }
@@ -146,6 +152,7 @@ namespace NzbDrone.Core.MediaFiles
 
             var fileInfoStopwatch = Stopwatch.StartNew();
             var filesToUpdate = new List<EpisodeFile>();
+            var codecChangedFiles = new List<EpisodeFile>();
 
             foreach (var file in seriesFiles)
             {
@@ -157,11 +164,20 @@ namespace NzbDrone.Core.MediaFiles
                     continue;
                 }
 
+                var previousCodec = file.MediaInfo?.VideoFormat;
+
                 file.Size = fileSize;
 
                 if (!_updateMediaInfoService.Update(file, series))
                 {
                     filesToUpdate.Add(file);
+                }
+
+                // Track files whose codec changed so we can re-evaluate routing.
+                var newCodec = file.MediaInfo?.VideoFormat;
+                if (newCodec.IsNotNullOrWhiteSpace() && newCodec != previousCodec)
+                {
+                    codecChangedFiles.Add(file);
                 }
             }
 
@@ -174,6 +190,18 @@ namespace NzbDrone.Core.MediaFiles
             fileInfoStopwatch.Stop();
             _logger.Trace("Reprocessing existing files complete for: {0} [{1}]", series, decisionsStopwatch.Elapsed);
 
+            // If any file's codec changed, check whether the series should be in a different folder.
+            // Also check all files with known codecs in case routing rules changed since the last scan.
+            var allFilesForRouting = codecChangedFiles.Any()
+                ? codecChangedFiles
+                : seriesFiles.Where(f => f.MediaInfo?.VideoFormat.IsNotNullOrWhiteSpace() == true).ToList();
+
+            if (ApplyCodecRouting(series, allFilesForRouting))
+            {
+                // Series folder was moved — the queued rescan will continue from the new path.
+                return;
+            }
+
             RemoveEmptySeriesFolder(series.Path);
 
             var possibleExtraFiles = new List<string>();
@@ -185,6 +213,71 @@ namespace NzbDrone.Core.MediaFiles
             }
 
             CompletedScanning(series, possibleExtraFiles);
+        }
+
+        /// <summary>
+        /// Checks whether any of the supplied files' codecs route the series to a different
+        /// folder (root or processing). If so, moves the entire series folder to the target
+        /// path, updates the series record, and queues a fresh rescan.
+        /// Returns true when a move was performed (caller should abort the current scan).
+        /// </summary>
+        private bool ApplyCodecRouting(Series series, List<EpisodeFile> candidateFiles)
+        {
+            foreach (var file in candidateFiles)
+            {
+                var videoFormat = file.MediaInfo?.VideoFormat;
+                if (videoFormat.IsNullOrWhiteSpace())
+                {
+                    continue;
+                }
+
+                var targetSeriesPath = _folderRoutingService.GetRoutedSeriesPath(series, videoFormat);
+
+                if (targetSeriesPath.IsNullOrWhiteSpace() || targetSeriesPath.PathEquals(series.Path))
+                {
+                    continue;
+                }
+
+                _logger.Info("Codec routing: series '{0}' codec '{1}' requires path '{2}' (currently '{3}'). Moving.",
+                    series.Title, videoFormat, targetSeriesPath, series.Path);
+
+                try
+                {
+                    if (_diskProvider.FolderExists(series.Path))
+                    {
+                        // Ensure the parent destination directory exists.
+                        var parentDir = Path.GetDirectoryName(targetSeriesPath);
+                        if (parentDir.IsNotNullOrWhiteSpace() && !_diskProvider.FolderExists(parentDir))
+                        {
+                            _diskProvider.CreateFolder(parentDir);
+                        }
+
+                        _diskProvider.MoveFolder(series.Path, targetSeriesPath);
+                        _logger.Debug("Moved series folder from '{0}' to '{1}'.", series.Path, targetSeriesPath);
+                    }
+
+                    series.Path = targetSeriesPath;
+                    _seriesService.UpdateSeries(series, updateEpisodesToMatchSeason: false, publishUpdatedEvent: false);
+
+                    // Queue a rescan so Sonarr picks up the files at the new location.
+                    _commandQueue.Push(
+                        new RescanSeriesCommand(series.Id),
+                        CommandPriority.Normal,
+                        CommandTrigger.Unspecified);
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex, "Failed to apply codec routing for series '{0}' to '{1}'.",
+                        series.Title, targetSeriesPath);
+                }
+
+                // Only evaluate the first routable file — all files in the series share the same base path.
+                break;
+            }
+
+            return false;
         }
 
         private void CleanMediaFiles(Series series, List<string> mediaFileList)
