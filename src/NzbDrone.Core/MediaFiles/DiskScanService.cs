@@ -190,13 +190,9 @@ namespace NzbDrone.Core.MediaFiles
             fileInfoStopwatch.Stop();
             _logger.Trace("Reprocessing existing files complete for: {0} [{1}]", series, decisionsStopwatch.Elapsed);
 
-            // If any file's codec changed, check whether the series should be in a different folder.
-            // Also check all files with known codecs in case routing rules changed since the last scan.
-            var allFilesForRouting = codecChangedFiles.Any()
-                ? codecChangedFiles
-                : seriesFiles.Where(f => f.MediaInfo?.VideoFormat.IsNotNullOrWhiteSpace() == true).ToList();
-
-            if (ApplyCodecRouting(series, allFilesForRouting))
+            // Only re-evaluate routing when a codec change was detected during this scan.
+            // Running routing on every scan would override any path the user manually sets.
+            if (codecChangedFiles.Any() && ApplyCodecRouting(series, codecChangedFiles))
             {
                 // Series folder was moved — the queued rescan will continue from the new path.
                 return;
