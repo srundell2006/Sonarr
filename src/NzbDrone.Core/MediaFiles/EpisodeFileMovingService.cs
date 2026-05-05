@@ -34,8 +34,6 @@ namespace NzbDrone.Core.MediaFiles
         private readonly IMediaFileAttributeService _mediaFileAttributeService;
         private readonly IImportScript _scriptImportDecider;
         private readonly IRootFolderService _rootFolderService;
-        private readonly IFolderRoutingService _folderRoutingService;
-        private readonly ISeriesService _seriesService;
         private readonly IEventAggregator _eventAggregator;
         private readonly IConfigService _configService;
         private readonly Logger _logger;
@@ -48,8 +46,6 @@ namespace NzbDrone.Core.MediaFiles
                                 IMediaFileAttributeService mediaFileAttributeService,
                                 IImportScript scriptImportDecider,
                                 IRootFolderService rootFolderService,
-                                IFolderRoutingService folderRoutingService,
-                                ISeriesService seriesService,
                                 IEventAggregator eventAggregator,
                                 IConfigService configService,
                                 Logger logger)
@@ -62,8 +58,6 @@ namespace NzbDrone.Core.MediaFiles
             _mediaFileAttributeService = mediaFileAttributeService;
             _scriptImportDecider = scriptImportDecider;
             _rootFolderService = rootFolderService;
-            _folderRoutingService = folderRoutingService;
-            _seriesService = seriesService;
             _eventAggregator = eventAggregator;
             _configService = configService;
             _logger = logger;
@@ -73,8 +67,6 @@ namespace NzbDrone.Core.MediaFiles
         {
             var episodes = _episodeService.GetEpisodesByFileId(episodeFile.Id);
 
-            // Rename keeps the file in its current folder — no cross-folder routing.
-            // Codec-based routing only applies on import (see MoveEpisodeFile(LocalEpisode)).
             return MoveEpisodeFile(episodeFile, series, episodes);
         }
 
@@ -91,18 +83,9 @@ namespace NzbDrone.Core.MediaFiles
 
         public EpisodeFile MoveEpisodeFile(EpisodeFile episodeFile, LocalEpisode localEpisode)
         {
-            // Apply codec-based routing for new import scenario.
-            var videoFormat = localEpisode.MediaInfo?.VideoFormat;
-            if (videoFormat.IsNotNullOrWhiteSpace())
-            {
-                var routedPath = _folderRoutingService.GetRoutedSeriesPath(localEpisode.Series, videoFormat);
-                if (routedPath.IsNotNullOrWhiteSpace() && !routedPath.PathEquals(localEpisode.Series.Path))
-                {
-                    localEpisode.Series.Path = routedPath;
-                    _seriesService.UpdateSeries(localEpisode.Series, updateEpisodesToMatchSeason: false, publishUpdatedEvent: false);
-                }
-            }
-
+            // Codec-based folder routing is handled at the series level by DiskScanService.ApplyCodecRouting,
+            // which moves the entire series folder when a codec change is detected during a scan.
+            // We do not modify series.Path here because that overrides any path the user has manually set.
             var filePath = _buildFileNames.BuildFilePath(localEpisode.Episodes, localEpisode.Series, episodeFile, Path.GetExtension(localEpisode.Path), null, localEpisode.CustomFormats);
 
             EnsureEpisodeFolder(episodeFile, localEpisode, filePath);
