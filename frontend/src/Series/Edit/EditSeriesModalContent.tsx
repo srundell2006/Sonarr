@@ -81,7 +81,21 @@ function EditSeriesModalContent({
   );
   const [isConfirmMoveModalOpen, setIsConfirmMoveModalOpen] = useState(false);
 
-  const { saveSeries, isSaving, saveError } = useSaveSeries(isPathChanging);
+  // Two separate mutation instances so we can pass the correct moveFiles flag at
+  // call time rather than at hook-initialization time.
+  const {
+    saveSeries: saveSeriesNoMove,
+    isSaving: isSavingNoMove,
+    saveError: saveErrorNoMove,
+  } = useSaveSeries(false);
+  const {
+    saveSeries: saveSeriesWithMove,
+    isSaving: isSavingWithMove,
+    saveError: saveErrorWithMove,
+  } = useSaveSeries(true);
+
+  const isSaving = isSavingNoMove || isSavingWithMove;
+  const saveError = saveErrorNoMove ?? saveErrorWithMove;
   const wasSaving = usePrevious(isSaving);
 
   const { settings, ...otherSettings } = useMemo(() => {
@@ -173,9 +187,10 @@ function EditSeriesModalContent({
     if (isPathChanging && !isConfirmMoveModalOpen) {
       setIsConfirmMoveModalOpen(true);
     } else {
+      // "Don't Move Files" path (or normal save when path isn't changing).
       setIsConfirmMoveModalOpen(false);
 
-      saveSeries({
+      saveSeriesNoMove({
         ...series,
         ...pendingChanges,
       });
@@ -185,17 +200,17 @@ function EditSeriesModalContent({
     isPathChanging,
     isConfirmMoveModalOpen,
     pendingChanges,
-    saveSeries,
+    saveSeriesNoMove,
   ]);
 
   const handleMoveSeriesPress = useCallback(() => {
     setIsConfirmMoveModalOpen(false);
 
-    saveSeries({
+    saveSeriesWithMove({
       ...series,
       ...pendingChanges,
     });
-  }, [series, pendingChanges, saveSeries]);
+  }, [series, pendingChanges, saveSeriesWithMove]);
 
   useEffect(() => {
     if (!isSaving && wasSaving && !saveError) {
