@@ -73,23 +73,8 @@ namespace NzbDrone.Core.MediaFiles
         {
             var episodes = _episodeService.GetEpisodesByFileId(episodeFile.Id);
 
-            // Resolve the absolute source path now, before routing may change series.Path.
-            // TransferFile falls back to series.Path + RelativePath when episodeFile.Path is null,
-            // which would point to the wrong location after routing updates series.Path.
-            episodeFile.Path = Path.Combine(series.Path, episodeFile.RelativePath);
-
-            // Apply codec-based routing for rename/upgrade scenario.
-            var videoFormat = episodeFile.MediaInfo?.VideoFormat;
-            if (videoFormat.IsNotNullOrWhiteSpace())
-            {
-                var routedPath = _folderRoutingService.GetRoutedSeriesPath(series, videoFormat);
-                if (routedPath.IsNotNullOrWhiteSpace() && !routedPath.PathEquals(series.Path))
-                {
-                    series.Path = routedPath;
-                    _seriesService.UpdateSeries(series, updateEpisodesToMatchSeason: false, publishUpdatedEvent: false);
-                }
-            }
-
+            // Rename keeps the file in its current folder — no cross-folder routing.
+            // Codec-based routing only applies on import (see MoveEpisodeFile(LocalEpisode)).
             return MoveEpisodeFile(episodeFile, series, episodes);
         }
 
